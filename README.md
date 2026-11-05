@@ -1,14 +1,19 @@
-# AI Documentation Pipeline: Six Agents from Raw Material to Maintained Docs
+# AI Documentation Pipeline: Seven Agents from Raw Material to Published, Maintained Docs
 
 **Author:** Debargho Ghosh, Technical Writer (16 years, internal and external documentation)
-**Status:** Six of seven stages of an end-to-end AI documentation pipeline are
-working: Intake (v3), Planning (v2), Drafting (Doc drafter v7), Review (Style
-guide reviewer v5), QA (v1), and Maintenance (v2). Publishing is next (see the
-Roadmap). Planner, drafter, reviewer, and QA share one house style (v1.1).
+**Status:** All seven stages of an end-to-end AI documentation pipeline are
+built and tested: Intake (v4), Planning (v3), Drafting (Doc drafter v7), Review
+(Style guide reviewer v5), QA (v1), Publishing (v1), and Maintenance (v2).
+Planner, drafter, reviewer, and QA share one house style (v1.2).
+
+**Quick links:** [one-page case study](case-study/case-study-ai-docs-pipeline.pdf) ·
+[full report](case-study/ai-docs-pipeline-report.pdf) ·
+[the user guide the pipeline produced](outputs/contoso-charts-user-guide.pdf) ·
+[example runs with real outputs](examples/)
 
 ## Summary
 
-I designed, tested, and connected six AI agents that support the
+I designed, tested, and connected seven AI agents that cover the whole
 documentation lifecycle:
 
 - **Doc intake:** reads messy raw material (Slack threads, meeting notes,
@@ -33,6 +38,11 @@ documentation lifecycle:
   consistent across articles, and quoted messages match the source. It gives
   each draft a release verdict (Ready, Ready after fixes, Blocked, or Missing)
   and one combined list of questions blocking release.
+- **Doc publisher:** the last gate before readers. It publishes only what's
+  ready, verifies that claimed fixes are really in the text, removes internal
+  markers without changing a word, adds front matter, turns link text into
+  links, and prepares Markdown files, patches, a pull request description, and
+  a publication record for maintenance.
 - **Doc maintenance:** after publishing, compares new changes (release notes,
   pull requests, SME answers, support tickets) against the published docs and
   finds "drift": sentences that are now wrong, incomplete, or confusing. It
@@ -51,7 +61,14 @@ including a duplicate article and a stale troubleshooting page intake never saw.
 The QA agent caught all ten planted release defects with no false alarms, plus
 a missing link I hadn't planted. The maintenance agent found every planted
 drift, including a rename in five articles, and left history (earlier release
-notes) untouched.
+notes) untouched. The publisher held back every item that wasn't ready,
+including a fix a writer claimed but hadn't made, and published the rest with
+no wording changes.
+
+**See for yourself:** [`examples/refresh-from-excel/`](examples/refresh-from-excel/)
+has one full run with the agents' real outputs: the raw input, intake's source
+packs, the doc plan, drafts with `[S#]` tags, the reviewer's issues tables, and
+QA's release verdicts.
 
 ## The pipeline
 
@@ -73,7 +90,7 @@ Existing docs inventory ──► Doc planner ◄──────────�
                             Doc QA ──► release verdicts + blocking questions ──► (docs lead signs off)
                                 │
                                 ▼
-                     [Publishing — next on the roadmap]
+                         Doc publisher ──► files + patches + PR + publication record ──► (docs lead approves merge)
                                 │
                                 ▼
 New changes + published docs ──► Doc maintenance ──► change sets (Ready / Hold / Blocked)
@@ -83,9 +100,13 @@ New changes + published docs ──► Doc maintenance ──► change sets (Re
 Shared by the planner, drafter, reviewer, and QA: house-style.md (one set of rules)
 ```
 
-Stages built so far: 1 to 5 and 7 of the full lifecycle.
+All seven stages of the lifecycle are built:
 
-**Intake** → **Planning** → **Drafting** → **Review** → **QA** → Publishing → **Maintenance**
+**Intake** → **Planning** → **Drafting** → **Review** → **QA** → **Publishing** → **Maintenance**
+
+Six human checkpoints keep a writer in charge: confirm scope, approve the plan,
+edit the draft, sign off the release, approve the merge, and approve
+maintenance tickets.
 
 ## Part 1: Style guide reviewer
 
@@ -427,6 +448,105 @@ so changes should wait for the release.
 alias, and flagged the two overlapping relinking articles for the planner; v2
 didn't. Approval is where a human catches that.
 
+## Part 7: Doc publisher
+
+### The risk it's designed around
+
+The publisher creates no content. Its risks are **letting something through
+that isn't ready**, and **quietly changing what a writer wrote**. So it acts as
+a strict gate with only mechanical permissions.
+
+| Rule | Why |
+|---|---|
+| Publish only Ready items; Blocked, Missing, and Hold stay out | Nothing unfinished reaches readers |
+| Verify every claimed fix against the final text | "Ready after fixes" is checked, not trusted |
+| Block any file with [GAP], [CONFLICT], internal question numbers, TBD, or TODO | Internal notes never go live |
+| The only allowed removals: [S#] source tags and evidence notes | The writer's words stay exactly as approved |
+| Updates become patches with exact placement | It never invents the rest of an article |
+| Links come from the site's slug map, never guessed | No broken URLs |
+| Redirects only when the plan retires or renames | No invented redirects |
+| Flag release risks, and let the docs lead decide | Contradicting old and new pages aren't left live by accident |
+| A publication record goes to maintenance | Maintenance knows exactly what's live |
+
+### Test: the final 4.3 release
+
+The release info, front matter schema, slug map, approved plan, final QA
+report, two maintenance change sets, and four final drafts, with nine traps:
+a fix claimed but not applied, an internal "TBD (I-Q6)" note, evidence notes
+to strip, a "Ready" change set with no draft, links to articles outside the
+release, no renames (so no redirects), two Updates that must be patches, and
+two release risks.
+
+### Results (v1)
+
+| Check | Result |
+|---|---|
+| Main article published, 14 source tags and 1 evidence note removed, no other wording changed | ✅ |
+| Claimed fix not applied ("Refresh All") caught and sent back | ✅ |
+| "TBD (I-Q6)" caught; the file held, not edited | ✅ |
+| What's new published as a patch | ✅ |
+| Blocked and Missing articles held | ✅ |
+| Hold change set held; Ready change set with no draft sent to the Drafter | ✅ |
+| Links built from the slug map, including articles outside the release | ✅ |
+| No redirects invented | ✅ |
+| Release risks flagged with recommendations | ✅ 5 risks |
+| Front matter matches the schema | ✅ |
+| PR description and publication record | ✅ |
+
+**Result:** Publishing 2 (1 full file, 1 patch) · Held back 6 · Redirects 0.
+
+**Beyond the answer key:** it noticed the held "Mac shortcut TBD" note
+contradicts the published "Refresh isn't available on Mac," and its
+publication record flagged both published texts for the upcoming shortcut
+change in 4.4, handing the next job to maintenance.
+
+**Limit:** it could only say the old troubleshooting page *might* contradict
+the new article, because the live text of held articles wasn't in its inputs.
+That's an input fix, not an instruction fix.
+
+## Part 8: Full-guide run (Installation and Getting started)
+
+The first user guide had two chapters with no source behind them: Installation
+and Getting started. Instead of patching the text by hand, I gave the pipeline
+the missing inputs and ran it again.
+
+### What changed in the agents
+
+| Agent | Change | Why |
+|---|---|---|
+| Doc intake **v4** | Handles a **doc request** as well as a product change. Specs and passed test scripts count as sources. Adds **"Needs source"** for any requested topic with no source, and exact UI labels from the latest spec. | v3 only knew how to process changes. A guide also needs existing features. |
+| Doc planner **v3** | Adds a **FULL GUIDE** scope with a guide outline. It maps existing articles into chapters, places finished chapters without re-planning them, and follows "no pack, no brief." | v2 planned only the docs that one change affected. |
+| house-style.md **v1.2** | Rule 7: titles and headings are short labels (1–4 words). Rule 22: numbered figure captions. | Feedback that the guide's headings read like sentences |
+
+### Test: a doc request with ten planted traps
+
+The test material had:
+
+- the installer and requirement specs, with an earlier version that's superseded
+- a passed QA test script and a UI spec
+- a label rename (Insert Chart → New Chart)
+- a code name, a performance number, and a customer name
+- a Won't Fix ticket and an In Progress ticket
+- a "might" from Slack
+
+### Results
+
+| Stage | Result |
+|---|---|
+| Intake v4 | All superseded facts are logged, all confidential items are removed, and the speculation and unshipped tickets are excluded. **It applied "Needs source"** to the first refresh and export, which no raw input covered. One gap was missed: nothing asks what Chart Styles and Color Palette do. |
+| Planner v3 | **7/7.** It reused 4 existing articles instead of creating new ones. It found 4 stale articles, one that intake missed. It placed 5 finished chapters, and it sent the sourceless "Choose a chart type" back to intake. |
+| Drafter v7 | 5 drafts and **0 invented facts.** Every missing fact is a GAP pointing to an existing question. |
+| Reviewer v5 | 8 Medium issues and no High ones. It applied the new rule 7 to **link text** and found two live titles that now break it. |
+| QA v1, round 1 | All 5 drafts were blocked by open SME questions. It caught a **disagreement between the reviewer and the brief** about wizard steps, and it caught my own link edit. |
+| QA v1, round 2 | After the SME answers and the writer's fixes: **Ready 4 · Ready after fixes 2 · Blocked 0.** It found that What's new never announced Link to Excel or the Welcome pane. |
+| Publisher v1 | **Publishing 6 (2 full files + 4 patches) · Held 1 · Redirects 0.** It verified every claimed fix and removed only source tags. It caught a **patch-order bug** that would have left a deleted sentence live. Miss: it didn't flag a bullet added after QA. |
+| Maintenance v2 | 3 change sets with 9 tickets. The 4.4.1 rename sweep reached the printed guide's figure, the Windows 10 drop keeps a 4.4 note, and the support signal is Blocked as a question, not stated as fact. All 4 no-impact traps are excluded. |
+
+The full run, with real outputs at every stage, is in
+[examples/install-getting-started/](examples/install-getting-started/).
+The customer guide ([`outputs/contoso-charts-user-guide.pdf`](outputs/contoso-charts-user-guide.pdf)) now builds its
+Installation and Getting started chapters from these traced drafts.
+
 ## Lessons learned
 
 1. **The writer's expertise is the product.** The model's style knowledge was
@@ -461,7 +581,20 @@ didn't. Approval is where a human catches that.
     Maintenance needs a sweep, not a single fix.
 14. **Group related fixes.** Five separate tickets for one rename risk five
     different wordings. One change set with shared wording keeps them identical.
-15. **Know when to stop.** "Good enough to use" beats endless tuning.
+15. **The last gate should have the fewest permissions.** The publisher may
+    only remove tags and build links. Everything else goes back to a human.
+16. **Verify, don't trust.** A fix marked as applied wasn't. One check against
+    the text caught it.
+17. **Know when to stop.** "Good enough to use" beats endless tuning.
+18. **Missing content is an input problem, not an agent problem.** The guide's
+    unsourced chapters didn't need a smarter drafter. They needed the specs, and
+    an intake rule that refuses to fill a pack from general knowledge.
+19. **One shared rule changes every agent.** Rewriting house-style rule 7 made the
+    reviewer flag link text to two live articles. Version the rules file, and
+    retest after every change.
+20. **Agents can disagree.** The reviewer and the brief read "one action per step"
+    differently. QA caught it, and a human ruled. The fix belongs in the rule,
+    not in either agent.
 
 ## Files
 
@@ -470,58 +603,60 @@ in `agents/history/`, so you can see how each one changed between rounds.
 
 | Path | What it is |
 |---|---|
-| `house-style.md` | Shared style rules and markers, v1.1 (single source of truth) |
-| `agents/intake-agent-v3.md` | Doc intake instructions |
-| `agents/planning-agent-v2.md` | Doc planner instructions |
+| `house-style.md` | Shared style rules and markers, v1.2 (single source of truth) |
+| `agents/intake-agent-v4.md` | Doc intake instructions |
+| `agents/planning-agent-v3.md` | Doc planner instructions |
 | `agents/doc-drafter-v7.md` | Doc drafter instructions |
 | `agents/style-reviewer-v5.md` | Style guide reviewer instructions |
 | `agents/qa-agent-v1.md` | Doc QA instructions |
+| `agents/publishing-agent-v1.md` | Doc publisher instructions |
 | `agents/maintenance-agent-v2.md` | Doc maintenance instructions |
-| `agents/history/` | Every earlier version of each agent, plus `house-style-v1.0.md` |
+| `agents/history/` | Every earlier version of each agent, plus `house-style-v1.0.md` and `v1.1.md` |
+| `examples/refresh-from-excel/` | One full run with real outputs at each stage (see its README) |
+| `examples/install-getting-started/` | The full-guide run: all seven stages, including two QA rounds, the publisher, and maintenance |
+| `outputs/contoso-charts-user-guide.pdf` | The customer-facing user guide the pipeline produced |
+| `outputs/contoso-charts-guide-handover-notes.md` | Internal notes: sources per chapter, and what's still open |
+| `case-study/case-study-ai-docs-pipeline.pdf` | One-page case study |
+| `case-study/ai-docs-pipeline-report.pdf` | Full report on the design, tests, and results |
 | `tests/sample-draft-sso.md` | Reviewer test draft with planted errors |
-| `tests/source-pack-export-pdf.md` | Drafter test inputs with a planted conflict, gaps, and internal items |
-| `tests/drafter-answer-key.md` | Expected drafter results, written before testing |
-| `tests/raw-inputs-data-refresh.md` | Intake test inputs with six planted traps |
-| `tests/intake-answer-key.md` | Expected intake results, written before testing |
-| `tests/planning-inputs-data-refresh.md` | Planner test inputs: intake output and an existing docs inventory |
-| `tests/planning-answer-key.md` | Expected planner results, written before testing |
-| `tests/qa-inputs-data-refresh.md` | QA test inputs: plan, link map, source pack, and five drafts |
-| `tests/qa-answer-key.md` | Expected QA results, written before testing |
-| `tests/maintenance-inputs.md` | Maintenance test inputs: published docs, open questions, and seven changes |
-| `tests/maintenance-answer-key.md` | Expected maintenance results, written before testing |
+| `tests/source-pack-export-pdf.md`, `tests/drafter-answer-key.md` | Drafter test inputs (planted conflict, gaps, internal items) and answer key |
+| `tests/raw-inputs-data-refresh.md`, `tests/intake-answer-key.md` | Intake test inputs with six planted traps, and answer key |
+| `tests/planning-inputs-data-refresh.md`, `tests/planning-answer-key.md` | Planner test inputs (intake output and a docs inventory) and answer key |
+| `tests/qa-inputs-data-refresh.md`, `tests/qa-answer-key.md` | QA test inputs (plan, link map, source pack, five drafts) and answer key |
+| `tests/publishing-inputs.md`, `tests/publishing-answer-key.md` | Publisher test inputs (release info, slug map, plan, QA report, drafts) and answer key |
+| `tests/maintenance-inputs.md`, `tests/maintenance-answer-key.md` | Maintenance test inputs (published docs, open questions, seven changes) and answer key |
+| `tests/*-install*.md` | Inputs and answer keys for the full-guide run (intake v4, planner v3, drafter, publisher, maintenance) |
 
-All products, customers, and people in the test material are fictional.
+All products, customers, and people in the test material are fictional. Answer
+keys were written before each agent was run.
 
 ## Roadmap
 
 | Stage | Agent | Status |
 |---|---|---|
-| 1. Intake | Doc intake v3 | ✅ Built and tested |
-| 2. Planning | Doc planner v2 | ✅ Built and tested |
+| 1. Intake | Doc intake v4 | ✅ Built and tested |
+| 2. Planning | Doc planner v3 | ✅ Built and tested |
 | 3. Drafting | Doc drafter v7 | ✅ Built and tested |
 | 4. Review | Style guide reviewer v5 | ✅ Built and tested |
 | 5. QA | Doc QA v1 | ✅ Built and tested |
-| 6. Publishing | Doc publisher | 🔜 **Next** |
+| 6. Publishing | Doc publisher v1 | ✅ Built and tested |
 | 7. Maintenance | Doc maintenance v2 | ✅ Built and tested |
 
-### Next: Stage 6, Publishing
+All seven stages are built (Phase A of my learning plan: agents without code).
 
-The publishing agent will be the gate between QA and the live docs site:
+### Small improvements to make
 
-- **Publish only what's ready:** take the drafts QA marks Ready and the
-  maintenance change sets marked Ready. Anything Blocked or on Hold stays out.
-- **Clean the files:** remove every internal marker (`[S#]` source tags,
-  `[GAP]`, `[CONFLICT]`, evidence notes) and refuse to publish if a GAP or
-  CONFLICT is still open.
-- **Add metadata:** front matter such as title, description, product version,
-  TOC location, last-updated date, and keywords.
-- **Prepare the change:** publish-ready Markdown files and a pull request
-  description for a docs-as-code repo, listing every new, updated, retired,
-  and redirected article.
-- **Hand off to maintenance:** record what was published, in which version, so
-  the maintenance agent knows exactly what's live.
+- Give the publisher the live text of related articles, so it can confirm
+  release risks instead of saying "might."
+- Give QA the complete plan, including every brief.
+- Publisher v2: content added after the QA report needs its own QA verdict.
+- Decide a patch-release policy (M-Q1) before 4.4.1 ships.
+- house-style v1.3: add "A wizard page counts as one step" to rule 9.
+- Replace house-style.md v1.1 in the QA, publisher, and maintenance projects.
+- Ask what Chart Styles and Color Palette do. Intake and the drafter both missed it.
+- Run each test 2–3 times and record the variation.
 
-### After that
+### Next phases
 
 - **Phase B:** connect the stages with a visual workflow tool (n8n or Make), so
   each agent's output moves to the next automatically.

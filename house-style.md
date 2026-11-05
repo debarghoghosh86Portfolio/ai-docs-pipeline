@@ -1,6 +1,6 @@
 # House style (single source of truth)
 
-Version: 1.1
+Version: 1.2
 Based on: the Microsoft Writing Style Guide, with house decisions.
 Used by: Doc planner (titles), Doc drafter (to write), and Style guide reviewer (to check).
 Change a rule HERE, never in an agent's instructions.
@@ -23,11 +23,20 @@ Change a rule HERE, never in an agent's instructions.
 ## Headings
 6. Sentence-style capitalization in titles and headings.
    Bad: "Configure Your Network Settings"  Good: "Configure your network settings"
-7. Task headings start with a verb. No questions, no "How to."
-   Bad: "How to uninstall?"  Good: "Uninstall Contoso Charts"
-   Exception: a Troubleshooting title describes the symptom in the reader's
-   words, and its section headings state causes.
-   OK: "Charts don't update after editing Excel"
+7. Keep titles and headings short: aim for 1 to 4 words, never more than 6.
+   A heading is a label, not a sentence: no verbs in the past tense, no
+   ending punctuation, no questions, no "How to."
+   Bad: "How to uninstall?"  Good: "Uninstall"
+   Bad: "Refresh all linked charts in a presentation"  Good: "Refresh all charts"
+   - Chapter and article titles name the topic: "Installation," "Getting
+     started," "Refresh charts," "Data sources."
+   - Task headings can start with a verb ("Refresh one chart") or be a noun
+     phrase ("Export to PDF"). Use one pattern within a section.
+   - Troubleshooting: the title is the topic ("Troubleshooting"). Each section
+     heading names one cause as a short noun phrase. State the symptom in the
+     article's first sentence.
+     Bad: "Someone moved or deleted the workbook"  Good: "Missing workbook"
+     Bad: "The workbook has unsaved changes"  Good: "Unsaved changes"
 
 ## Procedures and UI
 8. UI actions: use "select" (not "click" or "click on"), "enter" (not "type in").
@@ -76,6 +85,8 @@ Change a rule HERE, never in an agent's instructions.
 22. Every image needs alt text that describes what it shows.
     Bad: <img src="2.jpg">
     Good: <img src="2.jpg" alt="Setup wizard Welcome screen with the Next button">
+    In PDF and print, give every figure a numbered caption ("Figure 3. The
+    Change Data Source dialog box"), and refer to it by number, not position.
 23. Link text describes the destination. Never use "click here" or "here."
     Bad: "To know more on configuring the data grids click here."
     Good: "For more information, see Configure data grids."
